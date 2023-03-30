@@ -1,27 +1,37 @@
 import os
-from openpyxl import load_workbook
 import PySimpleGUI as sg
 
 # Define o tema da interface
-sg.theme('DarkAmber') 
+sg.theme('DarkAmber')
 
-def carregar_projetos():
+def carregar_projetos(path):
     projetos = []
-    folder_path = os.path.join("empresa", "desenvolvimento", "TabelaCadastro", "src")
-    for file in os.listdir(folder_path):
+    for file in os.listdir(path):
         if file.endswith('.pyw'):
             projetos.append(file)
     return projetos
 
+import subprocess
 
-def abrir_projeto(nome_projeto):
-    projeto_path = os.path.join(os.getcwd(), "empresa", "desenvolvimento", "TabelaCadastro", "src", nome_projeto)
-    os.system(f'start "" "{projeto_path}"')
+def abrir_projeto(caminho):
+    subprocess.run(['start', caminho], shell=True)
 
-# Cria o layout da janela
-layout = [[sg.Text('Projetos Salvos')],
-          [sg.Listbox(values=carregar_projetos(), size=(30, 10), key='-PROJETOS-', enable_events=True)],
-          [sg.Button('Abrir Projeto', disabled=True, key='-ABRIR-')],
+
+# Define o layout da primeira aba
+tab1_layout = [[sg.Text('Projetos Salvos')],
+               [sg.Listbox(values=carregar_projetos(os.path.join('empresa', 'Artefacts')), size=(30, 10), key='-PROJETOS-',
+                           enable_events=True)],
+               [sg.Button('Abrir Projeto', disabled=True, key='-ABRIR-')]]
+
+# Define o layout da segunda aba
+tab2_layout = [[sg.Text('Projetos Salvos')],
+               [sg.Listbox(values=carregar_projetos(os.path.join('empresa', 'desenvolvimento', 'TabelaCadastro', 'src')),
+                           size=(30, 10), key='-PROJETOS2-', enable_events=True)],
+               [sg.Button('Abrir Projeto', disabled=True, key='-ABRIR2-')]]
+
+# Cria o layout do TabGroup
+layout = [[sg.TabGroup([
+    [sg.Tab('Artefacts', tab1_layout), sg.Tab('Desenvolvimento', tab2_layout)]])],
           [sg.Button('Fechar')]]
 
 # Cria a janela
@@ -40,6 +50,15 @@ while True:
     if event == '-ABRIR-':
         if values['-PROJETOS-']:
             projeto_selecionado = values['-PROJETOS-'][0]
-            abrir_projeto(projeto_selecionado)
+            abrir_projeto(os.path.join('empresa', 'Artefacts', projeto_selecionado))
+    if event == '-PROJETOS2-':
+        if values['-PROJETOS2-']:
+            window['-ABRIR2-'].update(disabled=False)
+        else:
+            window['-ABRIR2-'].update(disabled=True)
+    if event == '-ABRIR2-':
+        if values['-PROJETOS2-']:
+            projeto_selecionado = values['-PROJETOS2-'][0]
+            abrir_projeto(os.path.join('empresa', 'desenvolvimento', 'TabelaCadastro', 'src', projeto_selecionado))
 
 window.close()
